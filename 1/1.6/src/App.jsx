@@ -20,8 +20,15 @@ const App = () => {
   const Statistics = (props) => {
     const totalFeedback = props.good + props.neutral + props.bad
     const average = totalFeedback === 0 ? 0 : (props.good - props.bad) / totalFeedback
-    const positivePercentage = totalFeedback === 0 ? 0 : (props.good / totalFeedback) * 100
+    const positivePercentage = totalFeedback === 0 ? 0 : (good / totalFeedback) * 100
 
+    if (props.good === 0 && props.bad === 0 && props.neutral === 0) {
+      return (
+        <div>
+          <p>No feedback given</p>
+        </div>
+      )
+    }
     return (
       <div>
         <p>All: {totalFeedback}</p>
