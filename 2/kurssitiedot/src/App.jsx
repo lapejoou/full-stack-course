@@ -9,7 +9,6 @@ const Part = (props) => {
 }
 
 const Content = (props) => {
-  console.log(props);
   return (
     <div>
       {props.parts.map(part =>
@@ -21,12 +20,22 @@ const Content = (props) => {
   )
 }
 
+const Total = (props) => {
+  let total = 0;
+  {props.parts.map(part =>
+     total += part.exercises  
+   )}
+  
+   return <p>total of {total} exercises</p>
+}
+
 
 const Course = (props) => {
   return (
   <div>
     <Header course={props.course.name} />
     <Content parts={props.course.parts} />
+    <Total parts={props.course.parts} />
   </div>
   )
 }
