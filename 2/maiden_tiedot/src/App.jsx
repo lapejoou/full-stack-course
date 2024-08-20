@@ -43,7 +43,7 @@ const App = () => {
         />
         </div>
       </form>
-      <Countries countries = {countries} selectedCountry = {selectedCountry} />
+      <Countries countries = {countries} selectedCountry = {selectedCountry} setSelectedCountry = {setSelectedCountry} />
     </div>
   )
 }

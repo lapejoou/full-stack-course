@@ -1,9 +1,9 @@
-const Countries = ({ countries, selectedCountry }) => {
+const Countries = ({ countries, selectedCountry, setSelectedCountry }) => {
   console.log(countries);
   console.log(selectedCountry);
 
   if (selectedCountry) {
-    const languages = Object.values(selectedCountry.languages);
+    const languages = Object.values(selectedCountry.languages); 
 
     return (
       <div>
@@ -29,6 +29,7 @@ const Countries = ({ countries, selectedCountry }) => {
         {countries.map(country => (
           <li key={country.name.common}>
             {country.name.common}
+            <button onClick={() => setSelectedCountry(country)}>Show</button>
           </li>
         ))}
       </ul>
