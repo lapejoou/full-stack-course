@@ -4,12 +4,15 @@ import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import axios from 'axios'
 import personService from './services/persons'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setNewFilter] = useState('')
+  const [message, setMessage] = useState(null)
+  const [isError, setError] = useState(null);
 
   useEffect(() => {
     axios
@@ -18,6 +21,7 @@ const App = () => {
         setPersons(response.data)
       })
   }, [])
+
 
   const addName = (event) => {
     event.preventDefault()
@@ -37,6 +41,11 @@ const App = () => {
           ));
         setNewName('')
         setNewNumber('')
+        setError(false)
+        setMessage(`Updated '${newName}'`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
     })
     }
 
@@ -52,17 +61,35 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
+        setError(false)
+        setMessage(`Added '${newName}'`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
       })
 
     }
   }
 
   const deleteName = (id) => {
+      const deletedPerson = persons.find(person => person.id === id);
       personService
       .eliminate(id)
       .then(() => {
         setPersons(persons.filter(person => person.id !== id))
+        setError(false)
+        setMessage(`Deleted '${deletedPerson.name}'`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
       })
+      .catch(error => {
+        setError(true);
+        setMessage(`Information of '${deletedPerson.name}' has already been removed from the server`);
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000);
+      });
   }
 
   const handleNameChange = (event) => {
@@ -77,14 +104,15 @@ const App = () => {
     setNewFilter(event.target.value)
   }
 
+
   const personsToShow = filter === ''
     ? persons
     : persons.filter(person => person.name.toLowerCase().includes(filter.toLowerCase()))
 
-
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} isError = {isError} />
       <Filter  filter = {filter} handleFilterChange = {handleFilterChange}/>
       <h2>Add a new</h2>
       <PersonForm
