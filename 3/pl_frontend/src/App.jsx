@@ -16,7 +16,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get('/info')
+      .get('/api/persons')
       .then(response => {
         setPersons(response.data)
       })
