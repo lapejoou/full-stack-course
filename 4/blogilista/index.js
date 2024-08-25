@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -12,7 +13,7 @@ const blogSchema = mongoose.Schema({
 
 const Blog = mongoose.model('Blog', blogSchema)
 
-const mongoUrl = process.env.MONGODB_URI;
+const mongoUrl = process.env.MONGODB_URL;
 
 mongoose.connect(mongoUrl)
 
