@@ -50,11 +50,58 @@ test('a valid blog can be added ', async () => {
   
     const response = await api.get('/api/blogs')
   
-    const titles = response.body.map(r => r.title)
+    assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
+  })
+
+  test('blog without likes can be added ', async () => {
+    const newBlog = {
+        _id: "5a422ba71b54a676234d17fb",
+        title: "TDD harms architecture",
+        author: "Robert C. Martin",
+        url: "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html"
+    }
+  
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+  
+    const response = await api.get('/api/blogs')
   
     assert.strictEqual(response.body.length, helper.initialBlogs.length + 1)
+  })
+
+  test('blog without url cannot be added ', async () => {
+    const newBlog = {
+        _id: "5a422ba71b54a676234d17fb",
+        title: "TDD harms architecture",
+        author: "Robert C. Martin",
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
   
-    assert(titles.includes('Type wars'))
+    const response = await api.get('/api/blogs')
+  
+    assert.strictEqual(response.body.length, helper.initialBlogs.length)
+  })
+
+  test('blog without tirle cannot be added ', async () => {
+    const newBlog = {
+        _id: "5a422ba71b54a676234d17fb",
+        author: "Robert C. Martin",
+        url: "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html"
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+  
+    const response = await api.get('/api/blogs')
+  
+    assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
   
 
