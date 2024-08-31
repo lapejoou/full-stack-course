@@ -88,7 +88,7 @@ test('a valid blog can be added ', async () => {
     assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
 
-  test('blog without tirle cannot be added ', async () => {
+  test('blog without tile cannot be added ', async () => {
     const newBlog = {
         _id: "5a422ba71b54a676234d17fb",
         author: "Robert C. Martin",
@@ -103,6 +103,45 @@ test('a valid blog can be added ', async () => {
   
     assert.strictEqual(response.body.length, helper.initialBlogs.length)
   })
+
+  test('deletes a blog with status code 204 if id is valid', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+
+    const titles = blogsAtEnd.map(r => r.title)
+    assert(!titles.includes(blogToDelete.title))
+  })
+
+  test('updates a blog correctly', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToUpdate = blogsAtStart[1]
+
+    const updatedBlog = {
+        title: "Canonical string reduction",
+        url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+        likes: 12,
+    }
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedBlog)
+      .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    const titles = blogsAtEnd.map(r => r.title)
+    assert(!titles.includes(blogToUpdate.title))
+    assert(titles.includes(updatedBlog.title))
+})
+
   
 
 after(async () => {
