@@ -1,6 +1,7 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 blogsRouter.get('/', async (request, response) => {
     const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
@@ -13,7 +14,7 @@ blogsRouter.post('/', async (request, response) => {
     if (!decodedToken.id) {
       return response.status(401).json({ error: 'token invalid' })
     }
-    const user = await User.findById(decodedToken.id)
+    const user = request.user
 
     if (!title || !url) {
       return response.status(400).json({ error: 'title or url missing' })
@@ -35,14 +36,15 @@ blogsRouter.post('/', async (request, response) => {
   })
 
 blogsRouter.delete('/:id', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' })
-    }
+    const user = request.user 
 
     const blog = await Blog.findById(request.params.id)
+    
+    if (!blog.user) {
+      return response.status(400).json({ error: 'blog has no user' })
+    }
 
-    if (blog.user.toString() !== decodedToken.id.toString()) {
+    if (blog.user.toString() !== user.id.toString()) {
       return response.status(403).json({ error: 'permission denied' })
     }
 
