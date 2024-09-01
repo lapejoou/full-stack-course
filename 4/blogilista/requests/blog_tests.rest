@@ -33,3 +33,12 @@ Content-Type: application/json
 ### Get all blogs again
 GET http://localhost:3003/api/blogs
 Accept: application/json
+
+### Add a new user
+POST http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+  "username": "mluukkai",
+  "password": "salainen"
+}
