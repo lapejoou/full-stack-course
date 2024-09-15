@@ -1,41 +1,79 @@
-const blogReducer = (state = [], action) => {
-  switch(action.type) {
-  case 'NEW_NOTE':
-    return [...state, action.payload]
-  case 'TOGGLE_IMPORTANCE':
-    const id = action.payload.id
-    const noteToChange = state.find(n => n.id === id)
-    const changedNote = {
-      ...noteToChange,
-      important: !noteToChange.important
-    }
-    return state.map(note =>
-      note.id !== id ? note : changedNote
-    )
-  default:
-    return state
-  }
-}
+import { createSlice } from '@reduxjs/toolkit'
+import blogService from '../services/blogs'
 
-const generateId = () =>
-  Number((Math.random() * 1000000).toFixed(0))
+const getId = () => (100000 * Math.random()).toFixed(0)
 
-export const createNote = (content) => {
+const asObject = (blog) => {
   return {
-    type: 'NEW_NOTE',
-    payload: {
-      content,
-      important: false,
-      id: generateId()
+    content: blog,
+    id: getId(),
+    likes: 0
+  }
+}
+
+const blogSlice = createSlice({
+  name: 'blogs',
+  initialState: [],
+  reducers: {
+    like(state, action) {
+      const id = action.payload
+      const blogToLike = state.find(blog => blog.id === id)
+      if (blogToLike) {
+        const updatedBlog = {
+          ...blogToLike,
+          likes: blogToLike.likes + 1
+        }
+        return state.map(blog =>
+          blog.id !== id ? blog : updatedBlog
+        )
+      }
+    },
+    remove(state, action) {
+      const id = action.payload
+      return state.filter((b) => b.id !== id)
+    },
+    appendBlog(state, action) {
+      state.push(action.payload)
+    },
+    setBlogs(state, action) {
+      return action.payload
     }
+  },
+})
+
+export const initializedBlogs = () => {
+  return async dispatch => {
+    const blogs = await blogService.getAll()
+    dispatch(setBlogs(blogs))
   }
 }
 
-export const toggleImportanceOf = (id) => {
-  return {
-    type: 'TOGGLE_IMPORTANCE',
-    payload: { id }
+export const createBlog = ({ content }) => {
+  return async dispatch => {
+    const newBlog = await blogService.create({ content })
+    dispatch(appendBlog(newBlog))
   }
 }
 
-export default blogReducer
+export const likeBlog = (id) => {
+  return async (dispatch) => {
+    const currentBlogs = await blogService.getAll()
+    const likedBlog = currentBlogs.find((a) => a.id === id)
+    const updatedBlog = {
+      ...likedBlog,
+      likes: likedBlog.likes + 1,
+    }
+    await blogService.update(id, updatedBlog)
+    dispatch(like(id))
+  }
+}
+
+export const removeBlog = (id) => {
+  return async (dispatch) => {
+    await blogService.remove(id)
+    dispatch(remove(id))
+  }
+}
+
+export const { like, setBlogs, appendBlog, remove } = blogSlice.actions
+export default blogSlice.reducer
