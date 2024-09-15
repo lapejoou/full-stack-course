@@ -8,26 +8,18 @@ import loginService from './services/login'
 import Togglable from './components/Togglable'
 import { setNotification } from './reducers/notificationReducer'
 import { initializedBlogs, createBlog, likeBlog, removeBlog } from './reducers/blogReducer'
+import { loginUser, logoutUser, initializeUser } from './reducers/userReducer'
 
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
-  const [loginVisible, setLoginVisible] = useState(false)
+  const user = useSelector((state) => state.user)
   const dispatch = useDispatch()
 
   const noteFormRef = useRef()
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
-    }
-  }, [])
-
-  useEffect(() => {
+    dispatch(initializeUser())
     dispatch(initializedBlogs())
   }, [dispatch])
 
@@ -39,20 +31,23 @@ const App = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault()
-
     try {
-      const user = await loginService.login({
-        username,
-        password,
-      })
-      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
-      blogService.setToken(user.token)
-      setUser(user)
+      const credentials = {
+        username: event.target.username.value,
+        password: event.target.password.value
+      }
+      dispatch(loginUser(credentials))
+      dispatch(setNotification('Login successful', 'info'))
       setUsername('')
       setPassword('')
     } catch (exception) {
       dispatch(setNotification('wrong username or password', 'error'))
     }
+  }
+
+  const handleLogout = () => {
+    dispatch(logoutUser())
+    dispatch(setNotification('Logged out', 'info'))
   }
 
   const loginForm = () => (
@@ -90,19 +85,8 @@ const App = () => {
 
   const addLike = async (blog) => {
     try {
-      const updatedBlog = {
-        ...blog,
-        likes: blog.likes + 1,
-      }
-
-      const updatedBlogCopy = {
-        ...updatedBlog,
-      }
-
-      delete updatedBlogCopy.user
-
       dispatch(likeBlog(blog.id))
-      dispatch(setNotification(`blog ${updatedBlog.title} by ${updatedBlog.author} liked`, 'info'))
+      dispatch(setNotification(`blog ${blog.title} by ${blog.author} liked`, 'info'))
     } catch (error) {
       dispatch(setNotification('like failed', 'error'))
     }
@@ -125,13 +109,7 @@ const App = () => {
         <div>
           <p>
             {user.name} logged in
-            <button
-              onClick={() =>
-                window.localStorage.removeItem('loggedBlogappUser')
-              }
-            >
-              Log out
-            </button>
+            <button onClick={handleLogout}>Log out</button>
           </p>
           <Togglable buttonLabel="create new blog" ref={noteFormRef}>
             <BlogForm addBlog={addBlog} />
