@@ -21,7 +21,7 @@ export const loginUser = (credentials) => {
   return async (dispatch) => {
     const user = await loginService.login(credentials)
     window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
-    blogService.setToken(user.token) 
+    blogService.setToken(user.token)
     dispatch(setUser(user))
   }
 }
@@ -31,7 +31,7 @@ export const initializeUser = () => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
-      blogService.setToken(user.token) 
+      blogService.setToken(user.token)
       dispatch(setUser(user))
     }
   }
