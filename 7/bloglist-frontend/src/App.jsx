@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
+import { useDispatch } from 'react-redux'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Togglable from './components/Togglable'
+import { setNotification } from './reducers/notificationReducer'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [info, setInfo] = useState({ message: null })
   const [user, setUser] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
+  const dispatch = useDispatch()
 
   const noteFormRef = useRef()
 
@@ -38,17 +40,6 @@ const App = () => {
     initial()
   }, [user])
 
-  const notifyWith = (message, type = 'info') => {
-    setInfo({
-      message,
-      type,
-    })
-
-    setTimeout(() => {
-      setInfo({ message: null })
-    }, 5000)
-  }
-
   const handleLogin = async (event) => {
     event.preventDefault()
 
@@ -63,7 +54,7 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      notifyWith('wrong username or password', 'error')
+      dispatch(setNotification('wrong username or password', 'error'))
     }
   }
 
@@ -98,9 +89,7 @@ const App = () => {
     noteFormRef.current.toggleVisibility()
     blogService.create(blogObject).then((returnedBlog) => {
       setBlogs(blogs.concat(returnedBlog))
-      notifyWith(
-        `a new blog ${blogObject.title} by ${blogObject.author} added`,
-      )
+      dispatch(setNotification(`a new blog ${blogObject.title} by ${blogObject.author} added`, 'info'))
     })
   }
 
@@ -121,9 +110,9 @@ const App = () => {
 
       setBlogs(blogs.map((b) => (b.id !== blog.id ? b : updatedBlog)))
 
-      notifyWith(`blog ${updatedBlog.title} by ${updatedBlog.author} liked`)
+      dispatch(setNotification(`blog ${updatedBlog.title} by ${updatedBlog.author} liked`, 'info'))
     } catch (error) {
-      notifyWith('like failed', 'error')
+      dispatch(setNotification('like failed', 'error'))
     }
   }
 
@@ -131,15 +120,15 @@ const App = () => {
     try {
       await blogService.remove(blog.id)
       setBlogs(blogs.filter((b) => b.id !== blog.id))
-      notifyWith(`blog ${blog.title} by ${blog.author} deleted`)
+      dispatch(setNotification(`blog ${blog.title} by ${blog.author} deleted`, 'info'))
     } catch (error) {
-      notifyWith('deleting failed', 'error')
+      dispatch(setNotification('deleting failed', 'error'))
     }
   }
 
   return (
     <div>
-      <Notification info={info} />
+      <Notification/>
       {!user && loginForm()}
       {user && (
         <div>
